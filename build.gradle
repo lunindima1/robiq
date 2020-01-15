@@ -1,0 +1,162 @@
+import java.text.SimpleDateFormat
+
+/*
+* https://proandroiddev.com/draw-under-status-bar-like-a-pro-db38cfff2870
+* http://samokatnn.com:8081
+* */
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'io.fabric'
+
+
+def APP_ID = "com.samokatnn.lamboskooter"
+def APP_ID_TEST = "test.samokatnn.lamboskooter"
+def FLAVOR_DIM = 'market'
+def APP_VERSION = "1.4"
+def APP_CODE = 32
+
+
+android {
+
+    compileSdkVersion SDK_MAX
+    buildToolsVersion BUILD_TOOL
+    flavorDimensions FLAVOR_DIM
+
+    signingConfigs {
+        dev {
+            keyAlias 'Kotlin'
+            keyPassword 'KotlinPWD'
+            storeFile file('../Kotlin.jks')
+            storePassword 'KotlinPWD'
+        }
+
+        prod {
+            keyAlias 'Kotlin'
+            keyPassword 'KotlinPWD'
+            storeFile file('../Kotlin.jks')
+            storePassword 'KotlinPWD'
+        }
+    }
+
+    defaultConfig {
+        minSdkVersion SDK_MIN
+        targetSdkVersion SDK_MAX
+        versionCode APP_CODE
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
+    }
+
+    productFlavors {
+        prod {
+            dimension FLAVOR_DIM
+            applicationId APP_ID
+            versionName APP_VERSION
+            buildConfigField "boolean", "IS_DEV", "false"
+            signingConfig signingConfigs.prod
+        }
+
+        dev {
+            dimension FLAVOR_DIM
+            applicationId APP_ID_TEST
+            versionName "${APP_VERSION}b"
+            buildConfigField "boolean", "IS_DEV", "true"
+            signingConfig signingConfigs.dev
+        }
+    }
+
+    buildTypes {
+        release {
+            debuggable false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.prod
+        }
+
+        debug {
+            debuggable true
+            minifyEnabled false
+            signingConfig signingConfigs.prod
+        }
+
+        applicationVariants.all { variant ->
+            variant.outputs.all {
+                def buildType = variant.buildType.isDebuggable()? '_debug' : ''
+                def dateTime =  new SimpleDateFormat("_MMMMM.dd_HH-mm").format(new Date())
+                outputFileName = "LamboScooter_${variant.versionName}${buildType}${dateTime}_build-${variant.versionCode}.apk"
+            }
+        }
+    }
+
+    preBuild.doLast {
+        delete fileTree(buildDir) {
+            include '**/*.apk'
+        }
+    }
+}
+
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$KOTLIN"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$KOTLIN_COROUTINES"
+    implementation "com.crashlytics.sdk.android:crashlytics:$CRASHLYTICS"
+    implementation "com.google.android.gms:play-services-maps:$GOOGLE_MAPS"
+    implementation "com.google.maps.android:android-maps-utils:$GOOGLE_MAPS_UTILS"
+    implementation "com.google.android.gms:play-services-vision:$GOOGLE_VISION"
+    implementation "com.google.firebase:firebase-core:$FIREBASE_CORE"
+    implementation "com.google.firebase:firebase-messaging:$FIREBASE_MESSAGING"
+    implementation "com.google.code.gson:gson:$GSON"
+
+    implementation "com.google.android.material:material:$XMATERIAL"
+    implementation "androidx.core:core-ktx:$XCOREKTX"
+    implementation "androidx.appcompat:appcompat:$XAPPCOMPAT"
+    implementation "androidx.recyclerview:recyclerview:$XRECYCLERVIEW"
+    implementation "androidx.cardview:cardview:$XCARDVIEW"
+    implementation "androidx.constraintlayout:constraintlayout:$XCONSTRAINT"
+    implementation "androidx.exifinterface:exifinterface:$EXIFINTERFACE"
+
+    implementation "com.squareup.okhttp3:okhttp:$OKHTTP"
+    implementation "com.squareup.retrofit2:retrofit:$RETROFIT"
+    implementation "com.squareup.retrofit2:converter-gson:$RETROFIT"
+    implementation "com.itkacher.okhttpprofiler:okhttpprofiler:$OKHTTP_PROFILER"
+
+    implementation "com.google.dagger:dagger:$DAGGER"
+    implementation "com.google.dagger:dagger-android:$DAGGER"
+    implementation "com.google.dagger:dagger-android-support:$DAGGER"
+    kapt "com.google.dagger:dagger-compiler:$DAGGER"
+    kapt "com.google.dagger:dagger-android-processor:$DAGGER"
+
+    implementation "com.arello-mobile:moxy:$MOXY"
+    implementation "com.arello-mobile:moxy-app-compat:$MOXY"
+    kapt "com.arello-mobile:moxy-compiler:$MOXY"
+
+    implementation "com.github.bumptech.glide:glide:$GLIDE"
+    implementation "ru.terrakok.cicerone:cicerone:$CICERONE"
+
+    implementation "com.j256.ormlite:ormlite-core:$ORM"
+    implementation "com.j256.ormlite:ormlite-android:$ORM"
+
+    implementation "ru.tinkoff.acquiring:ui:$TINKOFF"
+    implementation "ru.tinkoff.acquiring:card-io:$TINKOFF"
+
+    implementation "com.redmadrobot:input-mask-android:$INPUT_MASK"
+    implementation "com.github.barteksc:android-pdf-viewer:$PDF_READER"
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:core:1.2.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
+
+apply plugin: 'com.google.gms.google-services'
+
+//android.applicationVariants.all { variant ->
+//    def isEnabled = "debug" != variant.name
+//    project.tasks.findByName("process${variant.name.capitalize()}GoogleServices").enabled = isEnabled
+//    project.tasks.findByName("fabricGenerateResources${variant.name.capitalize()}").enabled = isEnabled
+//}
